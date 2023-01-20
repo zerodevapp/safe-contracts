@@ -11,12 +11,12 @@ import "./common/SignatureDecoder.sol";
 import "./common/SecuredTokenTransfer.sol";
 import "./common/StorageAccessible.sol";
 import "./interfaces/ISignatureValidator.sol";
-import "./external/GnosisSafeMath.sol";
+import "./external/SafeMath.sol";
 
-/// @title Gnosis Safe - A multisignature wallet with support for confirmations using signed messages based on ERC191.
+/// @title Safe - A multisignature wallet with support for confirmations using signed messages based on ERC191.
 /// @author Stefan George - <stefan@gnosis.io>
 /// @author Richard Meissner - <richard@gnosis.io>
-contract GnosisSafe is
+contract Safe is
     EtherPaymentFallback,
     Singleton,
     ModuleManager,
@@ -28,7 +28,7 @@ contract GnosisSafe is
     StorageAccessible,
     GuardManager
 {
-    using GnosisSafeMath for uint256;
+    using SafeMath for uint256;
 
     string public constant VERSION = "1.3.0";
 
@@ -301,29 +301,6 @@ contract GnosisSafe is
             require(currentOwner > lastOwner && owners[currentOwner] != address(0) && currentOwner != SENTINEL_OWNERS, "GS026");
             lastOwner = currentOwner;
         }
-    }
-
-    /// @dev Allows to estimate a Safe transaction.
-    ///      This method is only meant for estimation purpose, therefore the call will always revert and encode the result in the revert data.
-    ///      Since the `estimateGas` function includes refunds, call this method to get an estimated of the costs that are deducted from the safe with `execTransaction`
-    /// @param to Destination address of Safe transaction.
-    /// @param value Ether value of Safe transaction.
-    /// @param data Data payload of Safe transaction.
-    /// @param operation Operation type of Safe transaction.
-    /// @return Estimate without refunds and overhead fees (base transaction and payload data gas costs).
-    /// @notice Deprecated in favor of common/StorageAccessible.sol and will be removed in next version.
-    function requiredTxGas(
-        address to,
-        uint256 value,
-        bytes calldata data,
-        Enum.Operation operation
-    ) external returns (uint256) {
-        uint256 startGas = gasleft();
-        // We don't provide an error message here, as we use it to return the estimate
-        require(execute(to, value, data, operation, gasleft()));
-        uint256 requiredGas = startGas - gasleft();
-        // Convert response to string and return via error message
-        revert(string(abi.encodePacked(requiredGas)));
     }
 
     /**

@@ -852,10 +852,10 @@
   resolved "https://registry.yarnpkg.com/@gnosis.pm/mock-contract/-/mock-contract-4.0.0.tgz#eaf500fddcab81b5f6c22280a7b22ff891dd6f87"
   integrity sha512-SkRq2KwPx6vo0LAjSc8JhgQstrQFXRyn2yqquIfub7r2WHi5nUbF8beeSSXsd36hvBcQxQfmOIYNYRpj9JOhrQ==
 
-"@gnosis.pm/safe-singleton-factory@^1.0.11":
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-singleton-factory/-/safe-singleton-factory-1.0.11.tgz#02e5a4a2991109b6a2da9744d2c0705a5f3a2338"
-  integrity sha512-+P9oamkofzQ7Q4EHa2WOix3+YCnblUyc4nCXMZEPK4wKzIhHJsEbFPoyTObPC7J2S15m62CRNsEhp5EnJ82dhQ==
+"@gnosis.pm/safe-singleton-factory@^1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-singleton-factory/-/safe-singleton-factory-1.0.12.tgz#4a0b373dc5c4097b8166d8747df348a400fb72a7"
+  integrity sha512-7nUnXi35EiVKRxypTJ60UMFaf6xA5TLTYyVur2877RDRU02pTabWx1D0wCbdWBMRE0sAxIe302CbIBdpkZuMIg==
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -870,6 +870,13 @@
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
+
+"@matterlabs/hardhat-zksync-deploy@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@matterlabs/hardhat-zksync-deploy/-/hardhat-zksync-deploy-0.6.1.tgz#4a439cfd34bab33f59b8a36dda582c70a0e8f5fe"
+  integrity sha512-5uVcJGAc5cjWB1GjrUC/XAmF/03+QhoCaZiZA6HplgTJ9bzSWZ+Zzr+B18TFUD8+4fL8iBdstVlhw3C4j0/QLg==
+  dependencies:
+    chalk "4.1.2"
 
 "@matterlabs/hardhat-zksync-solc@^0.3.13":
   version "0.3.13"

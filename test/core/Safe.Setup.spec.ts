@@ -10,7 +10,7 @@ import { AddressOne } from "../../src/utils/constants";
 import { chainId, encodeTransfer } from "../utils/encoding";
 
 
-describe("GnosisSafe", async () => {
+describe("Safe", async () => {
 
     const [user1, user2, user3] = waffle.provider.getWallets();
 
@@ -241,6 +241,14 @@ describe("GnosisSafe", async () => {
             expect(await mock.callStatic.invocationCountForCalldata(transferData)).to.be.deep.equals(BigNumber.from(1));
 
             await expect(await template.getOwners()).to.be.deep.eq([user1.address, user2.address, user3.address])
+        })
+
+        it('should revert if the initializer address does not contain code', async () => {
+            const { template } = await setupTests()    
+            
+            await expect(
+                template.setup([user1.address], 1, user2.address, "0xbeef73", AddressZero, AddressZero, 0, AddressZero)
+            ).to.be.revertedWith("GS002")
         })
     })
 })

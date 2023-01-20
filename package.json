@@ -1,5 +1,5 @@
 {
-  "name": "@gnosis.pm/safe-contracts",
+  "name": "@safe-global/safe-contracts",
   "version": "1.3.0",
   "description": "Ethereum multisig contract",
   "homepage": "https://github.com/safe-global/safe-contracts/",
@@ -44,7 +44,8 @@
   },
   "devDependencies": {
     "@gnosis.pm/mock-contract": "^4.0.0",
-    "@gnosis.pm/safe-singleton-factory": "^1.0.11",
+    "@gnosis.pm/safe-singleton-factory": "^1.0.12",
+    "@matterlabs/hardhat-zksync-deploy": "^0.6.1",
     "@matterlabs/hardhat-zksync-solc": "^0.3.13",
     "@nomiclabs/hardhat-ethers": "2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.0",

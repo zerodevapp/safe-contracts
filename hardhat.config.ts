@@ -2,6 +2,7 @@ import type { HardhatUserConfig, HttpNetworkUserConfig, SolidityUserConfig } fro
 import { ZkSolcConfig } from "@matterlabs/hardhat-zksync-solc/dist/src/types";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
+import "@matterlabs/hardhat-zksync-solc"
 import "solidity-coverage";
 import "hardhat-deploy";
 import dotenv from "dotenv";
@@ -23,7 +24,7 @@ const { NODE_URL, INFURA_KEY, MNEMONIC, ETHERSCAN_API_KEY, PK, SOLIDITY_VERSION,
 const DEFAULT_MNEMONIC =
   "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
-const sharedNetworkConfig: HttpNetworkUserConfig = { zksync: true };
+const sharedNetworkConfig: HttpNetworkUserConfig = {};
 if (PK) {
   sharedNetworkConfig.accounts = [PK];
 } else {
@@ -83,19 +84,14 @@ type CompilerSettings = {
 
 const getCompilerSettings = (): CompilerSettings => {
   if (TARGET_ZKSYNC) {
-    import("@matterlabs/hardhat-zksync-solc")
     return {
       solidity: {
         version: "0.8.15",
       },
       zksolc: {
-        version: "1.1.0",
-        compilerSource: "docker",
-        settings: {
-          experimental: {
-            dockerImage: "matterlabs/zksolc",
-          },
-        },
+        version: "1.2.2",
+        compilerSource: "binary",
+        settings: {},
       },
     };
   }
@@ -168,6 +164,12 @@ const userConfig: HardhatUserConfig = {
     avalanche: {
       ...sharedNetworkConfig,
       url: `https://api.avax.network/ext/bc/C/rpc`,
+    },
+    zkTestnet: {
+      url: "https://zksync2-testnet.zksync.dev", 
+      // @ts-expect-error this is zksync's property which is not reflected in the type
+      ethNetwork: "goerli", 
+      zksync: true,
     },
   },
   deterministicDeployment,
