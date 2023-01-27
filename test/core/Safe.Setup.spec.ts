@@ -10,7 +10,7 @@ import { AddressOne } from "../../src/utils/constants";
 import { chainId, encodeTransfer } from "../utils/encoding";
 
 
-describe("GnosisSafe", async () => {
+describe("Safe", async () => {
 
     const [user1, user2, user3] = waffle.provider.getWallets();
 
@@ -29,10 +29,15 @@ describe("GnosisSafe", async () => {
             await expect(
                 await singleton.getThreshold()
             ).to.be.deep.eq(BigNumber.from(1))
-            await expect(
-                await singleton.getModulesPaginated(AddressOne, 10)
-            ).to.be.deep.eq([[], AddressZero])
 
+            // Because setup wasn't called on the singleton it breaks the assumption made 
+            // within `getModulesPaginated` method that the linked list will be always correctly
+            // initialized with 0x1 as a starting element and 0x1 as the end
+            // But because `setupModules` wasn't called, it is empty.
+            await expect(
+                singleton.getModulesPaginated(AddressOne, 10)
+            ).to.be.reverted
+    
             // "Should not be able to retrieve owners (currently the contract will run in an endless loop when not initialized)"
             await expect(
                 singleton.getOwners()
@@ -236,6 +241,14 @@ describe("GnosisSafe", async () => {
             expect(await mock.callStatic.invocationCountForCalldata(transferData)).to.be.deep.equals(BigNumber.from(1));
 
             await expect(await template.getOwners()).to.be.deep.eq([user1.address, user2.address, user3.address])
+        })
+
+        it('should revert if the initializer address does not contain code', async () => {
+            const { template } = await setupTests()    
+            
+            await expect(
+                template.setup([user1.address], 1, user2.address, "0xbeef73", AddressZero, AddressZero, 0, AddressZero)
+            ).to.be.revertedWith("GS002")
         })
     })
 })

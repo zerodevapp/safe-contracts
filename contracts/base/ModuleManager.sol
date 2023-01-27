@@ -20,9 +20,11 @@ contract ModuleManager is SelfAuthorized, Executor {
     function setupModules(address to, bytes memory data) internal {
         require(modules[SENTINEL_MODULES] == address(0), "GS100");
         modules[SENTINEL_MODULES] = SENTINEL_MODULES;
-        if (to != address(0))
+        if (to != address(0)) {
+            require(isContract(to), "GS002");
             // Setup has to complete successfully or transaction fails.
             require(execute(to, 0, data, Enum.Operation.DelegateCall, gasleft()), "GS000");
+        }
     }
 
     /// @dev Allows to add a module to the whitelist.
@@ -67,7 +69,7 @@ contract ModuleManager is SelfAuthorized, Executor {
         // Only whitelisted modules are allowed.
         require(msg.sender != SENTINEL_MODULES && modules[msg.sender] != address(0), "GS104");
         // Execute transaction without further confirmations.
-        success = execute(to, value, data, operation, gasleft());
+        success = execute(to, value, data, operation, type(uint256).max);
         if (success) emit ExecutionFromModuleSuccess(msg.sender);
         else emit ExecutionFromModuleFailure(msg.sender);
     }
@@ -107,27 +109,52 @@ contract ModuleManager is SelfAuthorized, Executor {
     }
 
     /// @dev Returns array of modules.
-    /// @param start Start of the page.
-    /// @param pageSize Maximum number of modules that should be returned.
+    ///      If all entries fit into a single page, the next pointer will be 0x1.
+    ///      If another page is present, next will be the last element of the returned array.
+    /// @param start Start of the page. Has to be a module or start pointer (0x1 address)
+    /// @param pageSize Maximum number of modules that should be returned. Has to be > 0
     /// @return array Array of modules.
     /// @return next Start of the next page.
     function getModulesPaginated(address start, uint256 pageSize) external view returns (address[] memory array, address next) {
+        require(start == SENTINEL_MODULES || isModuleEnabled(start), "GS105");
+        require(pageSize > 0, "GS106");
         // Init array with max page size
         array = new address[](pageSize);
 
         // Populate return array
         uint256 moduleCount = 0;
-        address currentModule = modules[start];
-        while (currentModule != address(0x0) && currentModule != SENTINEL_MODULES && moduleCount < pageSize) {
-            array[moduleCount] = currentModule;
-            currentModule = modules[currentModule];
+        next = modules[start];
+        while (next != address(0) && next != SENTINEL_MODULES && moduleCount < pageSize) {
+            array[moduleCount] = next;
+            next = modules[next];
             moduleCount++;
         }
-        next = currentModule;
+
+        // Because of the argument validation we can assume that
+        // the `currentModule` will always be either a module address
+        // or sentinel address (aka the end). If we haven't reached the end
+        // inside the loop, we need to set the next pointer to the last element
+        // because it skipped over to the next module which is neither included
+        // in the current page nor won't be included in the next one
+        // if you pass it as a start.
+        if (next != SENTINEL_MODULES) {
+            next = array[moduleCount - 1];
+        }
         // Set correct size of returned array
         // solhint-disable-next-line no-inline-assembly
         assembly {
             mstore(array, moduleCount)
         }
+    }
+
+    /// @dev Returns true if `account` is a contract.
+    /// @param account The address being queried
+    function isContract(address account) internal view returns (bool) {
+        uint256 size;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            size := extcodesize(account)
+        }
+        return size > 0;
     }
 }

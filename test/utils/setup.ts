@@ -4,6 +4,7 @@ import { AddressZero } from "@ethersproject/constants";
 import solc from "solc"
 import { logGas } from "../../src/utils/execution";
 import { safeContractUnderTest } from "./config";
+import { getRandomIntAsString } from "./numbers";
 
 export const defaultCallbackHandlerDeployment = async () => {
     return await deployments.get("DefaultCallbackHandler");
@@ -28,8 +29,8 @@ export const getSafeSingleton = async () => {
 }
 
 export const getFactory = async () => {
-    const FactoryDeployment = await deployments.get("GnosisSafeProxyFactory");
-    const Factory = await hre.ethers.getContractFactory("GnosisSafeProxyFactory");
+    const FactoryDeployment = await deployments.get("SafeProxyFactory");
+    const Factory = await hre.ethers.getContractFactory("SafeProxyFactory");
     return Factory.attach(FactoryDeployment.address);
 }
 
@@ -67,17 +68,17 @@ export const getMock = async () => {
     return await Mock.deploy();
 }
 
-export const getSafeTemplate = async () => {
+export const getSafeTemplate = async (saltNumber: string = getRandomIntAsString()) => {
     const singleton = await getSafeSingleton()
     const factory = await getFactory()
-    const template = await factory.callStatic.createProxy(singleton.address, "0x")
-    await factory.createProxy(singleton.address, "0x").then((tx: any) => tx.wait())
+    const template = await factory.callStatic.createProxyWithNonce(singleton.address, "0x", saltNumber)
+    await factory.createProxyWithNonce(singleton.address, "0x", saltNumber).then((tx: any) => tx.wait())
     const Safe = await hre.ethers.getContractFactory(safeContractUnderTest());
     return Safe.attach(template);
 }
 
-export const getSafeWithOwners = async (owners: string[], threshold?: number, fallbackHandler?: string, logGasUsage?: boolean) => {
-    const template = await getSafeTemplate()
+export const getSafeWithOwners = async (owners: string[], threshold?: number, fallbackHandler?: string, logGasUsage?: boolean, saltNumber: string = getRandomIntAsString()) => {
+    const template = await getSafeTemplate(saltNumber)
     await logGas(
         `Setup Safe with ${owners.length} owner(s)${fallbackHandler && fallbackHandler !== AddressZero ? " and fallback handler" : ""}`, 
         template.setup(owners, threshold || owners.length, AddressZero, "0x", fallbackHandler || AddressZero, AddressZero, 0, AddressZero),
@@ -92,6 +93,12 @@ export const getDefaultCallbackHandler = async () => {
 
 export const getCompatFallbackHandler = async () => {
     return (await compatFallbackHandlerContract()).attach((await compatFallbackHandlerDeployment()).address);
+}
+
+export const getSafeProxyRuntimeCode = async () => {
+    const proxyArtifact = await hre.artifacts.readArtifact('SafeProxy');
+
+    return proxyArtifact.deployedBytecode;
 }
 
 export const compile = async (source: string) => {
