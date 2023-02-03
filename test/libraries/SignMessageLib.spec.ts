@@ -1,12 +1,12 @@
 import { expect } from "chai";
-import hre, { deployments, waffle } from "hardhat";
+import hre, { deployments } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { getSafeWithOwners } from "../utils/setup";
 import { executeContractCallWithSigners, calculateSafeMessageHash } from "../../src/utils/execution";
 import { chainId } from "../utils/encoding";
 
 describe("SignMessageLib", async () => {
-    const [user1, user2] = waffle.provider.getWallets();
+    const [user1, user2] = await hre.ethers.getSigners();
 
     const setupTests = deployments.createFixture(async ({ deployments }) => {
         await deployments.fixture();

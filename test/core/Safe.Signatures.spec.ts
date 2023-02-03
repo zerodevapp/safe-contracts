@@ -1,7 +1,7 @@
 import { getCompatFallbackHandler } from "./../utils/setup";
 import { calculateSafeMessageHash, signHash, buildContractSignature } from "./../../src/utils/execution";
 import { expect } from "chai";
-import { deployments, waffle } from "hardhat";
+import hre, { deployments } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { AddressZero } from "@ethersproject/constants";
 import crypto from "crypto";
@@ -21,7 +21,7 @@ import {
 import { chainId } from "../utils/encoding";
 
 describe("Safe", async () => {
-    const [user1, user2, user3, user4, user5] = waffle.provider.getWallets();
+    const [user1, user2, user3, user4, user5] = await hre.ethers.getSigners();
 
     const setupTests = deployments.createFixture(async ({ deployments }) => {
         await deployments.fixture();

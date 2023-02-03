@@ -1,4 +1,5 @@
-import { Contract, Wallet, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from "ethers";
+import { SafeRequiredSigner } from "./../types";
+import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from "ethers";
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { AddressZero } from "@ethersproject/constants";
 
@@ -239,7 +240,7 @@ export const buildContractCall = (
     );
 };
 
-export const executeTxWithSigners = async (safe: Contract, tx: SafeTransaction, signers: Wallet[], overrides?: any) => {
+export const executeTxWithSigners = async (safe: Contract, tx: SafeTransaction, signers: SafeRequiredSigner[], overrides?: any) => {
     const sigs = await Promise.all(signers.map((signer) => safeSignTypedData(signer, safe, tx)));
     return executeTx(safe, tx, sigs, overrides);
 };
@@ -249,7 +250,7 @@ export const executeContractCallWithSigners = async (
     contract: Contract,
     method: string,
     params: any[],
-    signers: Wallet[],
+    signers: SafeRequiredSigner[],
     delegateCall?: boolean,
     overrides?: Partial<SafeTransaction>,
 ) => {

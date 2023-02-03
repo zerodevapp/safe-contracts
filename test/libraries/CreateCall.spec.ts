@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import hre, { deployments, waffle, ethers } from "hardhat";
+import hre, { deployments, ethers } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { compile, getCreateCall, getSafeWithOwners } from "../utils/setup";
 import { buildContractCall, executeTx, safeApproveHash } from "../../src/utils/execution";
@@ -18,7 +18,7 @@ contract Test {
 }`;
 
 describe("CreateCall", async () => {
-    const [user1] = waffle.provider.getWallets();
+    const [user1] = await hre.ethers.getSigners();
 
     const setupTests = deployments.createFixture(async ({ deployments }) => {
         await deployments.fixture();

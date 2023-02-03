@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import hre, { deployments, waffle } from "hardhat";
+import hre, { deployments } from "hardhat";
 import { BigNumber } from "ethers";
 import "@nomiclabs/hardhat-ethers";
 import { AddressZero } from "@ethersproject/constants";
@@ -8,7 +8,7 @@ import { executeContractCallWithSigners } from "../../src/utils/execution";
 import { AddressOne } from "../../src/utils/constants";
 
 describe("ModuleManager", async () => {
-    const [user1, user2, user3] = waffle.provider.getWallets();
+    const [user1, user2, user3] = await hre.ethers.getSigners();
 
     const setupTests = deployments.createFixture(async ({ deployments }) => {
         await deployments.fixture();

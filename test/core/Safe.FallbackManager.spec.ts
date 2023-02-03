@@ -1,12 +1,14 @@
 import { expect } from "chai";
-import hre, { deployments, waffle } from "hardhat";
+import hre, { deployments } from "hardhat";
 import { BigNumber } from "ethers";
 import "@nomiclabs/hardhat-ethers";
 import { AddressZero } from "@ethersproject/constants";
-import { defaultCallbackHandlerContract, defaultCallbackHandlerDeployment, deployContract, getMock, getSafeTemplate } from "../utils/setup";
+import { defaultCallbackHandlerContract, defaultCallbackHandlerDeployment, deployContract, getSafeTemplate } from "../utils/setup";
 import { executeContractCallWithSigners } from "../../src/utils/execution";
 
 describe("FallbackManager", async () => {
+    const [user1, user2] = await hre.ethers.getSigners();
+
     const setupWithTemplate = deployments.createFixture(async ({ deployments }) => {
         await deployments.fixture();
         const source = `
@@ -25,8 +27,6 @@ describe("FallbackManager", async () => {
             mirror,
         };
     });
-
-    const [user1, user2] = waffle.provider.getWallets();
 
     describe("setFallbackManager", async () => {
         it("is correctly set on deployment", async () => {
