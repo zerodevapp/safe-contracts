@@ -1,5 +1,6 @@
 import type { HardhatUserConfig, HttpNetworkUserConfig, SolidityUserConfig } from "hardhat/types";
 import { ZkSolcConfig } from "@matterlabs/hardhat-zksync-solc/dist/src/types";
+import { DeterministicDeploymentInfo } from "hardhat-deploy/dist/types";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@matterlabs/hardhat-zksync-solc";
@@ -19,7 +20,16 @@ const argv = yargs
 
 // Load environment variables.
 dotenv.config();
-const { NODE_URL, INFURA_KEY, MNEMONIC, ETHERSCAN_API_KEY, PK, SOLIDITY_VERSION, SOLIDITY_SETTINGS, TARGET_ZKSYNC } = process.env;
+const {
+    NODE_URL,
+    INFURA_KEY,
+    MNEMONIC,
+    ETHERSCAN_API_KEY,
+    PK,
+    SOLIDITY_VERSION,
+    SOLIDITY_SETTINGS,
+    COMPILATION_TARGET = "evm",
+} = process.env;
 
 const DEFAULT_MNEMONIC = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 
@@ -44,7 +54,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 const primarySolidityVersion = SOLIDITY_VERSION || "0.7.6";
 const soliditySettings = SOLIDITY_SETTINGS ? JSON.parse(SOLIDITY_SETTINGS) : undefined;
 
-const deterministicDeployment = (network: string) => {
+const deterministicDeployment = (network: string): DeterministicDeploymentInfo => {
     const info = getSingletonFactoryInfo(parseInt(network));
     if (!info) {
         throw new Error(`
@@ -66,24 +76,24 @@ type CompilerSettings = {
 };
 
 const getCompilerSettings = (): CompilerSettings => {
-    if (TARGET_ZKSYNC) {
+    const COMMON_SETTINGS = {
+        solidity: {
+            compilers: [{ version: primarySolidityVersion, settings: soliditySettings }, { version: "0.6.12" }, { version: "0.5.17" }],
+        },
+    };
+
+    if (COMPILATION_TARGET === "zksync") {
         return {
-            solidity: {
-                version: "0.8.15",
-            },
+            ...COMMON_SETTINGS,
             zksolc: {
-                version: "1.2.2",
+                version: "1.2.3",
                 compilerSource: "binary",
                 settings: {},
             },
         };
     }
 
-    return {
-        solidity: {
-            compilers: [{ version: primarySolidityVersion, settings: soliditySettings }, { version: "0.6.12" }, { version: "0.5.17" }],
-        },
-    };
+    return COMMON_SETTINGS;
 };
 
 const userConfig: HardhatUserConfig = {
@@ -98,7 +108,7 @@ const userConfig: HardhatUserConfig = {
             allowUnlimitedContractSize: true,
             blockGasLimit: 100000000,
             gas: 100000000,
-            zksync: true,
+            zksync: COMPILATION_TARGET === "zksync",
         },
         polygon: {
             ...sharedNetworkConfig,
