@@ -136,6 +136,7 @@ const userConfig: HardhatUserConfig = {
         },
         zkTestnet: {
             url: "https://zksync2-testnet.zksync.dev",
+            // @ts-expect-error - this is zksync specific property which is not defined in the hardhat network type
             ethNetwork: "goerli",
             zksync: true,
         },

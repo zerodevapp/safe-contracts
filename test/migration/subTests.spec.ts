@@ -1,8 +1,7 @@
-import { BigNumber } from "ethers";
-import { Contract } from "@ethersproject/contracts";
+import { BigNumber, Contract } from "ethers";
 import { parseEther } from "@ethersproject/units";
 import { expect } from "chai";
-import hre, { ethers, waffle } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { AddressOne } from "../../src/utils/constants";
 import { buildSafeTransaction, executeContractCallWithSigners, executeTxWithSigners, MetaTransaction } from "../../src/utils/execution";
 import { buildMultiSendSafeTx } from "../../src/utils/multisend";
@@ -13,7 +12,7 @@ interface TestSetup {
     multiSend: Contract;
 }
 
-export const verificationTests = async (setupTests: () => Promise<TestSetup>) => {
+export const verificationTests = async (setupTests: () => Promise<TestSetup>): Promise<void> => {
     const [user1, user2, user3] = await hre.ethers.getSigners();
 
     describe("execTransaction", async () => {
