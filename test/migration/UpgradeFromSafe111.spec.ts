@@ -34,7 +34,7 @@ describe("Upgrade from Safe 1.1.1", () => {
         const data = ChangeMasterCopyInterface.encodeFunctionData("changeMasterCopy", [singleton130])
         const tx = buildSafeTransaction({ to: safe.address, data, nonce })
         await executeTx(safe, tx, [await safeApproveHash(user1, safe, tx, true)])
-        expect(await safe.VERSION()).to.be.eq("1.3.0")
+        expect(await safe.VERSION()).to.be.eq("1.3.0-erc4337Compatible")
 
         return {
             migratedSafe: safe,
