@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.7.0 <0.9.0;
 
+pragma abicoder v2;
+
 import "./GnosisSafe.sol";
 
 /// @title Gnosis Safe - A multisignature wallet with support for confirmations using signed messages based on ERC191.
@@ -24,6 +26,8 @@ contract GnosisSafeL2 is GnosisSafe {
     );
 
     event SafeModuleTransaction(address module, address to, uint256 value, bytes data, Enum.Operation operation);
+
+    constructor(address _a) GnosisSafe(_a) {}
 
     /// @dev Allows to execute a Safe transaction confirmed by required number of owners and then pays the account that submitted the transaction.
     ///      Note: The fees are always transferred, even if the user transaction fails.

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.7.0 <0.9.0;
+pragma abicoder v2;
 
 import "./base/ModuleManager.sol";
 import "./base/OwnerManager.sol";
@@ -12,6 +13,23 @@ import "./common/SecuredTokenTransfer.sol";
 import "./common/StorageAccessible.sol";
 import "./interfaces/ISignatureValidator.sol";
 import "./external/GnosisSafeMath.sol";
+
+// STRUCT 
+struct UserOperation {
+
+    address sender;
+    uint256 nonce;
+    bytes initCode;
+    bytes callData;
+    uint256 callGasLimit;
+    uint256 verificationGasLimit;
+    uint256 preVerificationGas;
+    uint256 maxFeePerGas;
+    uint256 maxPriorityFeePerGas;
+    bytes paymasterAndData;
+    bytes signature;
+}
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /// @title Gnosis Safe - A multisignature wallet with support for confirmations using signed messages based on ERC191.
 /// @author Stefan George - <stefan@gnosis.io>
@@ -29,6 +47,7 @@ contract GnosisSafe is
     GuardManager
 {
     using GnosisSafeMath for uint256;
+    using ECDSA for bytes32;
 
     string public constant VERSION = "1.3.0-erc4337Compatible";
 
@@ -41,6 +60,8 @@ contract GnosisSafe is
     //     "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
     // );
     bytes32 private constant SAFE_TX_TYPEHASH = 0xbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8;
+
+    address public immutable eip4337EntryPoint;
 
     event SafeSetup(address indexed initiator, address[] owners, uint256 threshold, address initializer, address fallbackHandler);
     event ApproveHash(bytes32 indexed approvedHash, address indexed owner);
@@ -56,11 +77,38 @@ contract GnosisSafe is
     mapping(address => mapping(bytes32 => uint256)) public approvedHashes;
 
     // This constructor ensures that this contract can only be used as a master copy for Proxy contracts
-    constructor() {
+    constructor(address _entryPoint) {
         // By setting the threshold it is not possible to call setup anymore,
         // so we create a Safe with 0 owners and threshold 1.
         // This is an unusable Safe, perfect for the singleton
         threshold = 1;
+        eip4337EntryPoint = _entryPoint;
+    }
+    
+    /**
+     * delegate-called (using execFromModule) through the fallback, so "real" msg.sender is attached as last 20 bytes
+     */
+    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, address /*aggregator*/, uint256 missingAccountFunds)
+    external returns (uint256 sigTimeRange) {
+        require(msg.sender == eip4337EntryPoint, "account: not from eip4337Fallback");
+        bytes32 hash = userOpHash.toEthSignedMessageHash();
+        address recovered = hash.recover(userOp.signature);
+        require(threshold == 1, "account: only threshold 1");
+        if (!isOwner(recovered)) {
+            sigTimeRange = 1;
+        }
+
+        if (userOp.initCode.length == 0) {
+            require(nonce == userOp.nonce, "account: invalid nonce");
+            nonce = uint256(nonce) + 1;
+        }
+
+        if (missingAccountFunds > 0) {
+            //TODO: MAY pay more than the minimum, to deposit for future transactions
+            (bool success,) = payable(msg.sender).call{value : missingAccountFunds}("");
+            (success);
+            //ignore failure (its EntryPoint's job to verify, not account.)
+        }
     }
 
     /// @dev Setup function sets initial storage of contract.
